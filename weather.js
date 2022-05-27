@@ -28,7 +28,6 @@ async function fetchWeatherInACity(cityName, units) {
       units: units,
       appId: API_KEY,
     }).toString();
-    console.log(requestString);
     const requestUrl = `${WEATHER_API_BASE_URL}/weather?${requestString}`;
     const response = await fetch(requestUrl);
     const weatherData = await response.json();
@@ -68,7 +67,6 @@ program
   .action (async (cityName, options) => {
     const units = convertUnits(options.scale);
     const weatherData = await fetchWeatherInACity(cityName, units);
-    console.log(weatherData);
     const {temp} = weatherData.main;
     console.log(`It's ${temp} degrees in ${cityName}`);
   });
@@ -79,10 +77,16 @@ program
   .description("Displays in depth information about today's weather forecast")
   .argument("<string>", "City name")
   .option("-s, --scale <string>", "c for celcius and f for the other thing.")
-  // .action (async (cityName) => {
-  //   const weatherData = await fetchWeatherInACity(cityName);
-  //   const { temp: temp } = weatherData.main;
-  //   console.log(`It's ${temp} degrees in ${cityName}`);
-  // });
+  .action(async (cityName, options) => {
+    const units = convertUnits(options.scale);
+    const weatherData = await fetchWeatherInACity(cityName, units);
+    const { description: weatherDescription } = weatherData.weather[0];
+    const { temp_min: minTemp, temp_max: maxTemp } = weatherData.main;
+    const { speed: windSpeed } = weatherData.wind;
+
+    console.log(
+      `Today we will have ${weatherDescription}, temperatures will range from ${minTemp} to ${maxTemp} degrees with a wind speed of ${windSpeed}`
+    );
+  });
 
 program.parse();

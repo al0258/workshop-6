@@ -21,11 +21,11 @@ const API_KEY = process.env.API_KEY;
 
 const WEATHER_API_BASE_URL = process.env.WEATHER_API_BASE_URL;
 
-async function fetchWeatherInACity(cityName) {
+async function fetchWeatherInACity(cityName, units) {
   try {
     const requestString = new URLSearchParams({
       q: cityName,
-      units: 'metric',
+      units: units,
       appId: API_KEY,
     }).toString();
     console.log(requestString);
@@ -40,6 +40,21 @@ async function fetchWeatherInACity(cityName) {
   }
 }
 
+function convertUnits(scale) {
+  switch (scale) {
+    case 'c': {
+      return 'metric';
+    }
+    case 'f': {
+      return 'imperial';
+    }
+    default: {
+      return 'metric';
+    }
+  }
+}
+
+
 program
   .name("Weather monday-u app")
   .description("The best weather app in the whole wide worl, sorry, web")
@@ -49,10 +64,25 @@ program
   .command("get-temp")
   .description("Displays the temp of a selected city")
   .argument("<string>", "city name")
-  .action (async (cityName) => {
-    const weatherData = await fetchWeatherInACity(cityName);
-    const { temp: temp } = weatherData.main;
+  .option("-s, --scale <string>", "c for celcius and f for the other thing.")
+  .action (async (cityName, options) => {
+    const units = convertUnits(options.scale);
+    const weatherData = await fetchWeatherInACity(cityName, units);
+    console.log(weatherData);
+    const {temp} = weatherData.main;
     console.log(`It's ${temp} degrees in ${cityName}`);
   });
+
+
+  program
+  .command("get-detailed-forecast")
+  .description("Displays in depth information about today's weather forecast")
+  .argument("<string>", "City name")
+  .option("-s, --scale <string>", "c for celcius and f for the other thing.")
+  // .action (async (cityName) => {
+  //   const weatherData = await fetchWeatherInACity(cityName);
+  //   const { temp: temp } = weatherData.main;
+  //   console.log(`It's ${temp} degrees in ${cityName}`);
+  // });
 
 program.parse();
